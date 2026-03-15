@@ -265,7 +265,7 @@ if (typeof document !== "undefined") {
 			$("timeline-legend").hidden = st.isWeekend
 			$("timeline-note").hidden = !st.isWeekend
 
-			// Update weekday timeline segment widths for user's timezone
+			// Update weekday timeline segment widths and labels for user's timezone
 			if (!st.isWeekend) {
 				const segs = $("timeline-weekday").children
 				const peakStart = peak.start * 100
@@ -273,12 +273,12 @@ if (typeof document !== "undefined") {
 				segs[0].style.width = peakStart + "%"
 				segs[1].style.width = (peakEnd - peakStart) + "%"
 				segs[2].style.width = (100 - peakEnd) + "%"
-				// Update labels
+
 				const labels = $("timeline-labels-weekday").children
-				labels[1].style.left = peakStart + "%"
-				labels[1].textContent = peakStartLabel
-				labels[2].style.left = peakEnd + "%"
-				labels[2].textContent = peakEndLabel
+				labels[0].style.left = peakStart + "%"
+				labels[0].textContent = peakStartLabel
+				labels[1].style.left = peakEnd + "%"
+				labels[1].textContent = peakEndLabel
 			}
 			$("promo-period").hidden = true
 		}
