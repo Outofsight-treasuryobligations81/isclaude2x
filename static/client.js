@@ -263,19 +263,22 @@ if (typeof document !== "undefined") {
 			const peakEndLabel = formatHourInTz(PEAK_END_UTC, tz)
 
 			$("timeline-section").hidden = false
-			$("timeline-title").textContent = st.isWeekend
-				? localDay + (localDay !== etDay ? " \u2014 weekend in ET (" + etDay + ")" : " (weekend in ET)")
+			// Use the user's local day (not ET) to decide which timeline bar to show,
+			// so a Monday in IST shows peak hours even if ET is still Sunday.
+			const localIsWeekend = localDay === "Saturday" || localDay === "Sunday"
+			$("timeline-title").textContent = localIsWeekend
+				? localDay + " (weekend in ET)"
 				: localDay + " \u2014 peak: " + peakStartLabel + "\u2013" + peakEndLabel
 			$("timeline-marker").style.left = (progress * 100).toFixed(2) + "%"
-			$("timeline-weekday").hidden = st.isWeekend
-			$("timeline-weekend").hidden = !st.isWeekend
-			$("timeline-labels-weekday").hidden = st.isWeekend
-			$("timeline-labels-weekend").hidden = !st.isWeekend
-			$("timeline-legend").hidden = st.isWeekend
-			$("timeline-note").hidden = !st.isWeekend
+			$("timeline-weekday").hidden = localIsWeekend
+			$("timeline-weekend").hidden = !localIsWeekend
+			$("timeline-labels-weekday").hidden = localIsWeekend
+			$("timeline-labels-weekend").hidden = !localIsWeekend
+			$("timeline-legend").hidden = localIsWeekend
+			$("timeline-note").hidden = !localIsWeekend
 
 			// Update weekday timeline segment widths and labels for user's timezone
-			if (!st.isWeekend) {
+			if (!localIsWeekend) {
 				const segs = $("timeline-weekday").children
 				const peakStart = peak.start * 100
 				const peakEnd = peak.end * 100

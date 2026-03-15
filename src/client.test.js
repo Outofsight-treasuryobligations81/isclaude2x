@@ -323,6 +323,67 @@ describe("client getDayName", () => {
 })
 
 // ──────────────────────────────────────────────────────────
+// Local day vs ET day (timeline display logic)
+// ──────────────────────────────────────────────────────────
+describe("local day vs ET day for timeline", () => {
+	it("Monday IST but Sunday ET → local day is weekday, ET is weekend", () => {
+		// Monday March 16, 00:00 UTC = Sunday 8 PM ET, Monday 5:30 AM IST
+		const ts = utc("2026-03-16T00:00:00")
+		const localDay = getDayName(ts, "Asia/Kolkata")
+		const etDay = getDayName(ts, "America/New_York")
+		const localIsWeekend = localDay === "Saturday" || localDay === "Sunday"
+		expect(localDay).toBe("Monday")
+		expect(etDay).toBe("Sunday")
+		expect(localIsWeekend).toBe(false)
+		// Status: weekend in ET → 2x, but timeline should show weekday bar
+		const st = getStatus(ts)
+		expect(st.isWeekend).toBe(true) // ET is Sunday
+		expect(st.is2x).toBe(true)
+	})
+
+	it("Saturday IST but Friday ET → local day is weekend", () => {
+		// Saturday March 21, 00:00 UTC = Friday 8 PM ET, Saturday 5:30 AM IST
+		const ts = utc("2026-03-21T00:00:00")
+		const localDay = getDayName(ts, "Asia/Kolkata")
+		const etDay = getDayName(ts, "America/New_York")
+		const localIsWeekend = localDay === "Saturday" || localDay === "Sunday"
+		expect(localDay).toBe("Saturday")
+		expect(etDay).toBe("Friday")
+		expect(localIsWeekend).toBe(true)
+	})
+
+	it("Sunday ET and Sunday IST → both agree on weekend", () => {
+		// Sunday March 15, 14:00 UTC = Sunday 10 AM ET, Sunday 7:30 PM IST
+		const ts = utc("2026-03-15T14:00:00")
+		expect(getDayName(ts, "Asia/Kolkata")).toBe("Sunday")
+		expect(getDayName(ts, "America/New_York")).toBe("Sunday")
+		expect(getStatus(ts).isWeekend).toBe(true)
+	})
+
+	it("Monday ET and Monday IST → both agree on weekday", () => {
+		// Monday March 16, 14:00 UTC = Monday 10 AM ET, Monday 7:30 PM IST
+		const ts = utc("2026-03-16T14:00:00")
+		expect(getDayName(ts, "Asia/Kolkata")).toBe("Monday")
+		expect(getDayName(ts, "America/New_York")).toBe("Monday")
+		expect(getStatus(ts).isWeekend).toBe(false)
+		expect(getStatus(ts).isPeak).toBe(true)
+	})
+
+	it("Monday IST morning has 2x (ET still Sunday) but peak later", () => {
+		// Monday March 16, 03:00 UTC = Sunday 11 PM ET, Monday 8:30 AM IST
+		const earlyTs = utc("2026-03-16T03:00:00")
+		expect(getStatus(earlyTs).is2x).toBe(true) // weekend in ET
+		expect(getStatus(earlyTs).isWeekend).toBe(true)
+
+		// Monday March 16, 14:00 UTC = Monday 10 AM ET, Monday 7:30 PM IST → peak
+		const peakTs = utc("2026-03-16T14:00:00")
+		expect(getStatus(peakTs).is2x).toBe(false)
+		expect(getStatus(peakTs).isPeak).toBe(true)
+		expect(getStatus(peakTs).isWeekend).toBe(false)
+	})
+})
+
+// ──────────────────────────────────────────────────────────
 // formatTzName
 // ──────────────────────────────────────────────────────────
 describe("client formatTzName", () => {
