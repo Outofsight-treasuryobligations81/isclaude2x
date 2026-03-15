@@ -1,0 +1,18 @@
+{
+	"name": "isclaude2x",
+	"main": "worker/index.js",
+	"compatibility_date": "2025-01-01",
+	"assets": {
+		"directory": "./dist",
+	},
+	"routes": [
+		{
+			"pattern": "isclaude2x.com",
+			"custom_domain": true,
+		},
+		{
+			"pattern": "www.isclaude2x.com",
+			"custom_domain": true,
+		},
+	],
+}
