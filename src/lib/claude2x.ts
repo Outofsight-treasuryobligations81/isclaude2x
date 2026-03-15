@@ -59,7 +59,7 @@ function isWeekendET(d: Dayjs): boolean {
 export function getStatus(now: TimeInput = dayjs()): Status {
 	const d = toDayjs(now)
 	const promoActive = d.isAfter(PROMO_START) && d.isBefore(PROMO_END)
-	const promoNotStarted = d.isBefore(PROMO_START)
+	const promoNotStarted = d.isBefore(PROMO_START) || d.isSame(PROMO_START)
 	const promoEnded = !promoActive && !promoNotStarted
 
 	const utcHour = d.utc().hour()
