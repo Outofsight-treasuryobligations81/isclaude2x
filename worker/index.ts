@@ -95,12 +95,8 @@ function etDayName(ts: number): string {
 
 // ── Worker ──────────────────────────────────────────────
 
-interface Env {
-	ASSETS: Fetcher
-}
-
 export default {
-	async fetch(request: Request, env: Env): Promise<Response> {
+	async fetch(request: Request): Promise<Response> {
 		const url = new URL(request.url)
 		const now = Date.now()
 		const status = getStatus(now)
@@ -145,7 +141,11 @@ export default {
 			})
 		}
 
-		// Static assets (index.html, styles.css, client.js, favicon.svg)
-		return env.ASSETS.fetch(request)
+		// Static assets are served directly by Cloudflare's edge before the worker.
+		// If we get here, no static file matched — return 404.
+		return new Response("Not found", {
+			status: 404,
+			headers: { "content-type": "text/plain", "x-content-type-options": "nosniff" },
+		})
 	},
 } satisfies ExportedHandler<Env>
