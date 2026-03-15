@@ -1,159 +1,169 @@
 // isclaude2x.com — Client-side live status checker
 // Computes Claude 2x promotion status entirely in the browser.
-// No server round-trip needed for updates — just Date.now() + Intl.
-;(function () {
-	// ── Promotion constants ─────────────────────────────────
-	// March 13–27, 2026 in EDT (UTC-4)
-	const PROMO_START = 1773554400000 // 2026-03-13T04:00:00Z (midnight EDT)
-	const PROMO_END = 1774850400000 // 2026-03-28T04:00:00Z (end of March 27 EDT)
-	const PEAK_START_UTC = 12 // 8 AM EDT
-	const PEAK_END_UTC = 18 // 2 PM EDT
+// No server round-trip needed — just Date.now() + Intl.
 
-	// ── Core logic (mirrors src/lib/claude2x.ts) ────────────
+// ── Promotion constants ─────────────────────────────────
+// March 13–27, 2026 in EDT (UTC-4)
+const PROMO_START = 1773374400000 // 2026-03-13T04:00:00Z (midnight EDT)
+const PROMO_END = 1774670400000 // 2026-03-28T04:00:00Z (end of March 27 EDT)
+const PEAK_START_UTC = 12 // 8 AM EDT
+const PEAK_END_UTC = 18 // 2 PM EDT
 
-	/** Check if timestamp falls on a weekend in Eastern Time */
-	function isWeekendET(ts) {
-		const day = new Date(ts).toLocaleDateString("en-US", {
-			timeZone: "America/New_York",
-			weekday: "short",
-		})
-		return day === "Sat" || day === "Sun"
+// ── Core logic ──────────────────────────────────────────
+
+/** Check if timestamp falls on a weekend in Eastern Time */
+function isWeekendET(ts) {
+	const day = new Date(ts).toLocaleDateString("en-US", {
+		timeZone: "America/New_York",
+		weekday: "short",
+	})
+	return day === "Sat" || day === "Sun"
+}
+
+/** Get full 2x status for a given timestamp */
+function getStatus(ts) {
+	const promoActive = ts > PROMO_START && ts < PROMO_END
+	const promoNotStarted = ts <= PROMO_START
+	const promoEnded = !promoActive && !promoNotStarted
+	const utcH = new Date(ts).getUTCHours()
+	const isPeakHour = utcH >= PEAK_START_UTC && utcH < PEAK_END_UTC
+	const isWeekend = isWeekendET(ts)
+	// Peak only matters on weekdays
+	const isPeak = !isWeekend && isPeakHour
+	// 2x if promo is active AND (weekend OR outside peak hours)
+	const is2x = promoActive && (isWeekend || !isPeakHour)
+	return { is2x, promoActive, promoNotStarted, promoEnded, isPeak, isWeekend }
+}
+
+/** Find the next weekday noon UTC (peak start), skipping weekends */
+function findNextWeekdayPeakStart(ts) {
+	const d = new Date(ts)
+	const base = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), PEAK_START_UTC)
+	for (let i = 0; i < 8; i++) {
+		const candidate = base + i * 86400000
+		if (candidate > ts && !isWeekendET(candidate)) return candidate
+	}
+	return base + 7 * 86400000
+}
+
+/** Get countdown seconds and label to next status transition */
+function getCountdown(ts) {
+	const st = getStatus(ts)
+	if (st.promoEnded) return { seconds: 0, label: "Promotion has ended" }
+	if (st.promoNotStarted) {
+		return {
+			seconds: Math.max(0, Math.floor((PROMO_START - ts) / 1000)),
+			label: "Promotion starts",
+		}
 	}
 
-	/** Get full 2x status for a given timestamp */
-	function getStatus(ts) {
-		const promoActive = ts > PROMO_START && ts < PROMO_END
-		const promoNotStarted = ts <= PROMO_START
-		const promoEnded = !promoActive && !promoNotStarted
-		const utcH = new Date(ts).getUTCHours()
-		const isPeakHour = utcH >= PEAK_START_UTC && utcH < PEAK_END_UTC
-		const isWeekend = isWeekendET(ts)
-		// Peak only matters on weekdays
-		const isPeak = !isWeekend && isPeakHour
-		// 2x if promo is active AND (weekend OR outside peak hours)
-		const is2x = promoActive && (isWeekend || !isPeakHour)
-		return { is2x, promoActive, promoNotStarted, promoEnded, isPeak, isWeekend }
-	}
-
-	/** Find the next weekday noon UTC (peak start), skipping weekends */
-	function findNextWeekdayPeakStart(ts) {
+	let nextChange, nextLabel
+	if (st.is2x) {
+		// Currently 2x → next transition is when peak starts on a weekday
+		nextChange = findNextWeekdayPeakStart(ts)
+		nextLabel = "Standard hours begin"
+	} else {
+		// Currently peak → 2x resumes at 18:00 UTC today
 		const d = new Date(ts)
-		const base = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), PEAK_START_UTC)
-		for (let i = 0; i < 8; i++) {
-			const candidate = base + i * 86400000
-			if (candidate > ts && !isWeekendET(candidate)) return candidate
-		}
-		return base + 7 * 86400000
+		nextChange = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), PEAK_END_UTC)
+		nextLabel = "2x resumes"
 	}
 
-	/** Get countdown seconds and label to next status transition */
-	function getCountdown(ts) {
-		const st = getStatus(ts)
-		if (st.promoEnded) return { seconds: 0, label: "Promotion has ended" }
-		if (st.promoNotStarted) {
-			return {
-				seconds: Math.max(0, Math.floor((PROMO_START - ts) / 1000)),
-				label: "Promotion starts",
-			}
-		}
-
-		let nextChange, nextLabel
-		if (st.is2x) {
-			// Currently 2x → next transition is when peak starts on a weekday
-			nextChange = findNextWeekdayPeakStart(ts)
-			nextLabel = "Standard hours begin"
-		} else {
-			// Currently peak → 2x resumes at 18:00 UTC today
-			const d = new Date(ts)
-			nextChange = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), PEAK_END_UTC)
-			nextLabel = "2x resumes"
-		}
-
-		// Don't count past promo end
-		if (nextChange > PROMO_END) {
-			nextChange = PROMO_END
-			nextLabel = "Promotion ends"
-		}
-		return { seconds: Math.max(0, Math.floor((nextChange - ts) / 1000)), label: nextLabel }
+	// Don't count past promo end
+	if (nextChange > PROMO_END) {
+		nextChange = PROMO_END
+		nextLabel = "Promotion ends"
 	}
+	return { seconds: Math.max(0, Math.floor((nextChange - ts) / 1000)), label: nextLabel }
+}
 
-	// ── Formatting helpers ──────────────────────────────────
+// ── Formatting helpers ──────────────────────────────────
 
-	/** Format seconds as "1h 23m 45s", "5m 30s", or "12s" */
-	function formatCountdown(totalSeconds) {
-		if (totalSeconds <= 0) return "\u2014"
-		const h = Math.floor(totalSeconds / 3600)
-		const m = Math.floor((totalSeconds % 3600) / 60)
-		const s = totalSeconds % 60
-		const pad = (n) => (n < 10 ? "0" + n : "" + n)
-		if (h > 24) return Math.floor(h / 24) + "d " + (h % 24) + "h " + pad(m) + "m"
-		if (h > 0) return h + "h " + pad(m) + "m " + pad(s) + "s"
-		if (m > 0) return m + "m " + pad(s) + "s"
-		return s + "s"
-	}
+/** Format seconds as "1h 23m 45s", "5m 30s", or "12s" */
+function formatCountdown(totalSeconds) {
+	if (totalSeconds <= 0) return "\u2014"
+	const h = Math.floor(totalSeconds / 3600)
+	const m = Math.floor((totalSeconds % 3600) / 60)
+	const s = totalSeconds % 60
+	const pad = (n) => (n < 10 ? "0" + n : "" + n)
+	if (h > 24) return Math.floor(h / 24) + "d " + (h % 24) + "h " + pad(m) + "m"
+	if (h > 0) return h + "h " + pad(m) + "m " + pad(s) + "s"
+	if (m > 0) return m + "m " + pad(s) + "s"
+	return s + "s"
+}
 
-	/** Format timestamp as "12:30:00 PM" in given timezone */
-	function formatTime(ts, tz) {
-		try {
-			return new Intl.DateTimeFormat("en-US", {
-				timeZone: tz,
-				hour: "numeric",
-				minute: "2-digit",
-				second: "2-digit",
-				hour12: true,
-			}).format(new Date(ts))
-		} catch {
-			return new Intl.DateTimeFormat("en-US", {
-				hour: "numeric",
-				minute: "2-digit",
-				second: "2-digit",
-				hour12: true,
-			}).format(new Date(ts))
-		}
-	}
-
-	/** Get weekday name in ET (e.g. "Sunday") */
-	function getETDayName(ts) {
+/** Format timestamp as "12:30:00 PM" in given timezone */
+function formatTime(ts, tz) {
+	try {
 		return new Intl.DateTimeFormat("en-US", {
-			timeZone: "America/New_York",
-			weekday: "long",
+			timeZone: tz,
+			hour: "numeric",
+			minute: "2-digit",
+			second: "2-digit",
+			hour12: true,
+		}).format(new Date(ts))
+	} catch {
+		return new Intl.DateTimeFormat("en-US", {
+			hour: "numeric",
+			minute: "2-digit",
+			second: "2-digit",
+			hour12: true,
 		}).format(new Date(ts))
 	}
+}
 
-	/** Get progress through the ET day as 0–1 fraction (for timeline marker) */
-	function getETProgress(ts) {
-		const parts = new Intl.DateTimeFormat("en-US", {
-			timeZone: "America/New_York",
-			hourCycle: "h23",
-			hour: "2-digit",
-			minute: "2-digit",
-		}).formatToParts(new Date(ts))
-		let h = 0,
-			mi = 0
-		for (const part of parts) {
-			if (part.type === "hour") h = parseInt(part.value, 10)
-			if (part.type === "minute") mi = parseInt(part.value, 10)
-		}
-		return (h * 60 + mi) / (24 * 60)
+/** Get weekday name in ET (e.g. "Sunday") */
+function getETDayName(ts) {
+	return new Intl.DateTimeFormat("en-US", {
+		timeZone: "America/New_York",
+		weekday: "long",
+	}).format(new Date(ts))
+}
+
+/** Get progress through the ET day as 0–1 fraction (for timeline marker) */
+function getETProgress(ts) {
+	const parts = new Intl.DateTimeFormat("en-US", {
+		timeZone: "America/New_York",
+		hourCycle: "h23",
+		hour: "2-digit",
+		minute: "2-digit",
+	}).formatToParts(new Date(ts))
+	let h = 0,
+		mi = 0
+	for (const part of parts) {
+		if (part.type === "hour") h = parseInt(part.value, 10)
+		if (part.type === "minute") mi = parseInt(part.value, 10)
 	}
+	return (h * 60 + mi) / (24 * 60)
+}
 
-	/** Extract display name from IANA timezone ("America/New_York" → "New York") */
-	function formatTzName(tz) {
-		const p = tz.split("/")
-		return (p[p.length - 1] || tz).replace(/_/g, " ")
-	}
+/** Extract display name from IANA timezone ("America/New_York" → "New York") */
+function formatTzName(tz) {
+	const p = tz.split("/")
+	return (p[p.length - 1] || tz).replace(/_/g, " ")
+}
 
-	// ── State ───────────────────────────────────────────────
+// ── Expose for testing ──────────────────────────────────
+// When loaded via vitest, these become accessible on globalThis
+if (typeof globalThis !== "undefined") {
+	Object.assign(globalThis, {
+		getStatus, getCountdown, formatCountdown,
+		formatTime, getETDayName, getETProgress,
+		formatTzName, isWeekendET, findNextWeekdayPeakStart,
+		PROMO_START, PROMO_END, PEAK_START_UTC, PEAK_END_UTC,
+	})
+}
+
+// ── Browser-only: state + DOM ───────────────────────────
+// Guard so vitest can import this file without crashing on missing DOM
+if (typeof document !== "undefined") {
 	const USER_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone
 	const USER_TZ_DISPLAY = formatTzName(USER_TZ)
 	let simTime = null // null = live, number = frozen timestamp
 	let simTz = null // null = use browser tz, string = override
 	let debugOpen = false
 
-	// Shorthand for getElementById
 	const $ = (id) => document.getElementById(id)
-
-	// ── DOM update loop ─────────────────────────────────────
 
 	/** Recompute status and update all DOM elements */
 	function update() {
@@ -174,7 +184,6 @@
 		$("sim-dot").hidden = simTime === null
 
 		if (isInactive) {
-			// Promo not started or ended — simplified UI
 			$("hero-answer").textContent = "NO"
 			$("hero-subtitle").textContent = st.promoNotStarted
 				? "The 2x promotion hasn\u2019t started yet"
@@ -187,13 +196,11 @@
 			$("timeline-section").hidden = true
 			$("promo-period").hidden = false
 		} else {
-			// Promo active — full UI
 			$("hero-answer").textContent = st.is2x ? "YES" : "NO"
 			$("hero-subtitle").textContent = st.is2x
 				? "Claude usage is 2x right now"
 				: "Standard usage right now"
 
-			// Reason for current status
 			if (st.isWeekend) {
 				$("hero-reason").textContent = "2x all day on weekends"
 			} else if (st.is2x) {
@@ -202,38 +209,29 @@
 				$("hero-reason").textContent = "Peak hours (8\u202fAM\u20132\u202fPM ET on weekdays)"
 			}
 
-			// Countdown
 			$("countdown-block").hidden = false
 			$("countdown-label").textContent = cd.label + " in"
 			$("countdown-value").textContent = formatCountdown(cd.seconds)
-
-			// Time displays
 			$("times-section").hidden = false
 			$("tz-label").textContent = tzDisplay
 			$("time-user").textContent = formatTime(ts, tz)
 			$("time-et").textContent = formatTime(ts, "America/New_York")
-
-			// Timeline
 			$("timeline-section").hidden = false
 			$("timeline-title").textContent = st.isWeekend
 				? etDay + " (weekend)"
 				: etDay + " \u2014 peak: 8\u202fAM\u20132\u202fPM ET"
 			$("timeline-marker").style.left = (progress * 100).toFixed(2) + "%"
-
-			// Toggle weekday/weekend timeline variants
 			$("timeline-weekday").hidden = st.isWeekend
 			$("timeline-weekend").hidden = !st.isWeekend
 			$("timeline-labels-weekday").hidden = st.isWeekend
 			$("timeline-labels-weekend").hidden = !st.isWeekend
 			$("timeline-legend").hidden = st.isWeekend
 			$("timeline-note").hidden = !st.isWeekend
-
 			$("promo-period").hidden = true
 		}
 	}
 
-	// ── Konami code (↑↑↓↓←→←→BA) ───────────────────────────
-
+	// ── Konami code (↑↑↓↓←→←→BA) ───────────────────────
 	const KONAMI = [
 		"ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
 		"ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight",
@@ -260,8 +258,7 @@
 		}
 	})
 
-	// ── Debug panel event handlers ──────────────────────────
-
+	// ── Debug panel ─────────────────────────────────────
 	$("debug-close").addEventListener("click", () => {
 		debugOpen = false
 		$("debug-panel").hidden = true
@@ -278,10 +275,6 @@
 		update()
 	})
 
-	/**
-	 * Parse a datetime-local value in a specific timezone to a UTC timestamp.
-	 * Uses Intl.DateTimeFormat to compute the timezone offset.
-	 */
 	function parseDateInTz(dateStr, tz) {
 		if (!dateStr) return null
 		const parts = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/)
@@ -291,19 +284,11 @@
 		const d = parseInt(parts[3], 10)
 		const h = parseInt(parts[4], 10)
 		const mi = parseInt(parts[5], 10)
-
-		// Start with a UTC guess using the wall-clock values
 		const guessUTC = Date.UTC(y, mo, d, h, mi, 0)
-
-		// Format that UTC instant in the target timezone to find the offset
 		const fmt = new Intl.DateTimeFormat("en-US", {
-			timeZone: tz,
-			hourCycle: "h23",
-			year: "numeric",
-			month: "2-digit",
-			day: "2-digit",
-			hour: "2-digit",
-			minute: "2-digit",
+			timeZone: tz, hourCycle: "h23",
+			year: "numeric", month: "2-digit", day: "2-digit",
+			hour: "2-digit", minute: "2-digit",
 		})
 		const p = fmt.formatToParts(new Date(guessUTC))
 		let tzY, tzMo, tzD, tzH, tzMi
@@ -314,14 +299,10 @@
 			if (part.type === "hour") tzH = parseInt(part.value, 10)
 			if (part.type === "minute") tzMi = parseInt(part.value, 10)
 		}
-
-		// Compute offset: difference between what we wanted and what the tz rendered
 		const tzRendered = Date.UTC(tzY, tzMo, tzD, tzH, tzMi, 0)
-		const offset = tzRendered - guessUTC
-		return guessUTC - offset
+		return guessUTC - (tzRendered - guessUTC)
 	}
 
-	// Reactive debug inputs — update on every change
 	$("debug-date").addEventListener("input", function () {
 		const tz = $("debug-tz").value
 		const ts = parseDateInTz(this.value, tz)
@@ -345,9 +326,9 @@
 		}
 	})
 
-	// ── Start ───────────────────────────────────────────────
-	update() // Render immediately
+	// ── Start ───────────────────────────────────────────
+	update()
 	setInterval(() => {
-		if (simTime === null) update() // Tick every second when live
+		if (simTime === null) update()
 	}, 1000)
-})()
+}
