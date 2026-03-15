@@ -4,34 +4,26 @@
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
-		"dev": "vite",
-		"build": "vite build",
+		"build": "echo \"No build step - worker bundles directly\"",
 		"lint": "eslint .",
-		"preview": "vite preview",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"format": "prettier --write .",
-		"deploy": "pnpm build && wrangler deploy"
+		"deploy": "wrangler deploy"
 	},
 	"dependencies": {
-		"dayjs": "^1.11.20",
-		"react": "^19.2.4",
-		"react-dom": "^19.2.4"
+		"dayjs": "^1.11.20"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20260313.1",
 		"@eslint/js": "^9.39.4",
 		"@types/react": "^19.2.14",
 		"@types/react-dom": "^19.2.3",
-		"@vitejs/plugin-react": "^6.0.0",
 		"eslint": "^9.39.4",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-prettier": "^5.5.5",
-		"eslint-plugin-react-hooks": "^7.0.1",
-		"eslint-plugin-react-refresh": "^0.5.2",
-		"globals": "^17.4.0",
 		"prettier": "^3.8.1",
 		"typescript": "^5.9.3",
-		"vite": "^8.0.0",
 		"vitest": "^4.1.0",
 		"wrangler": "^4.73.0"
 	}
