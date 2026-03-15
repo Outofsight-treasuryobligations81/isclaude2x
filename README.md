@@ -73,7 +73,7 @@ wrangler deploy    # deploy to Cloudflare
 ## Sources
 
 - [Claude Support: March 2026 usage promotion](https://support.claude.com/en/articles/14063676-claude-march-2026-usage-promotion)
-- [@claudeai tweet](https://x.com/claudeai/status/1900397538584891445)
+- [@claudeai tweet](https://x.com/claudeai/status/2032911277497135523)
 
 ## Author
 
