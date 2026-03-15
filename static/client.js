@@ -120,10 +120,10 @@ function getETDayName(ts) {
 	}).format(new Date(ts))
 }
 
-/** Get progress through the ET day as 0–1 fraction (for timeline marker) */
-function getETProgress(ts) {
+/** Get progress through a day in a given timezone as 0–1 fraction */
+function getDayProgress(ts, tz) {
 	const parts = new Intl.DateTimeFormat("en-US", {
-		timeZone: "America/New_York",
+		timeZone: tz,
 		hourCycle: "h23",
 		hour: "2-digit",
 		minute: "2-digit",
@@ -135,6 +135,37 @@ function getETProgress(ts) {
 		if (part.type === "minute") mi = parseInt(part.value, 10)
 	}
 	return (h * 60 + mi) / (24 * 60)
+}
+
+// Keep the old name for test compatibility
+function getETProgress(ts) {
+	return getDayProgress(ts, "America/New_York")
+}
+
+/**
+ * Get peak window start/end as fractions of the user's local day (0–1).
+ * Peak is 12:00–18:00 UTC. We convert to the user's timezone to find
+ * where that window falls in their local 24h day.
+ */
+function getPeakFractions(tz) {
+	// Use a reference date during EDT (March 18, 2026)
+	const peakStartUTC = Date.UTC(2026, 2, 18, PEAK_START_UTC, 0, 0)
+	const peakEndUTC = Date.UTC(2026, 2, 18, PEAK_END_UTC, 0, 0)
+	return {
+		start: getDayProgress(peakStartUTC, tz),
+		end: getDayProgress(peakEndUTC, tz),
+	}
+}
+
+/** Format a UTC hour in a given timezone for display (e.g. "5:30 PM") */
+function formatHourInTz(utcHour, tz) {
+	const d = new Date(Date.UTC(2026, 2, 18, utcHour, 0, 0))
+	return new Intl.DateTimeFormat("en-US", {
+		timeZone: tz,
+		hour: "numeric",
+		minute: "2-digit",
+		hour12: true,
+	}).format(d)
 }
 
 /** Extract display name from IANA timezone ("America/New_York" → "New York") */
@@ -149,6 +180,7 @@ if (typeof globalThis !== "undefined") {
 	Object.assign(globalThis, {
 		getStatus, getCountdown, formatCountdown,
 		formatTime, getETDayName, getETProgress,
+		getDayProgress, getPeakFractions, formatHourInTz,
 		formatTzName, isWeekendET, findNextWeekdayPeakStart,
 		PROMO_START, PROMO_END, PEAK_START_UTC, PEAK_END_UTC,
 	})
@@ -173,8 +205,9 @@ if (typeof document !== "undefined") {
 
 		const st = getStatus(ts)
 		const cd = getCountdown(ts)
-		const progress = getETProgress(ts)
+		const progress = getDayProgress(ts, tz)
 		const etDay = getETDayName(ts)
+		const peak = getPeakFractions(tz)
 		const isInactive = st.promoNotStarted || st.promoEnded
 
 		// Set root status attribute (drives CSS theme: green/amber/gray)
@@ -216,10 +249,14 @@ if (typeof document !== "undefined") {
 			$("tz-label").textContent = tzDisplay
 			$("time-user").textContent = formatTime(ts, tz)
 			$("time-et").textContent = formatTime(ts, "America/New_York")
+			// Timeline (in user's timezone)
+			const peakStartLabel = formatHourInTz(PEAK_START_UTC, tz)
+			const peakEndLabel = formatHourInTz(PEAK_END_UTC, tz)
+
 			$("timeline-section").hidden = false
 			$("timeline-title").textContent = st.isWeekend
 				? etDay + " (weekend)"
-				: etDay + " \u2014 peak: 8\u202fAM\u20132\u202fPM ET"
+				: etDay + " \u2014 peak: " + peakStartLabel + "\u2013" + peakEndLabel
 			$("timeline-marker").style.left = (progress * 100).toFixed(2) + "%"
 			$("timeline-weekday").hidden = st.isWeekend
 			$("timeline-weekend").hidden = !st.isWeekend
@@ -227,6 +264,22 @@ if (typeof document !== "undefined") {
 			$("timeline-labels-weekend").hidden = !st.isWeekend
 			$("timeline-legend").hidden = st.isWeekend
 			$("timeline-note").hidden = !st.isWeekend
+
+			// Update weekday timeline segment widths for user's timezone
+			if (!st.isWeekend) {
+				const segs = $("timeline-weekday").children
+				const peakStart = peak.start * 100
+				const peakEnd = peak.end * 100
+				segs[0].style.width = peakStart + "%"
+				segs[1].style.width = (peakEnd - peakStart) + "%"
+				segs[2].style.width = (100 - peakEnd) + "%"
+				// Update labels
+				const labels = $("timeline-labels-weekday").children
+				labels[1].style.left = peakStart + "%"
+				labels[1].textContent = peakStartLabel
+				labels[2].style.left = peakEnd + "%"
+				labels[2].textContent = peakEndLabel
+			}
 			$("promo-period").hidden = true
 		}
 	}
