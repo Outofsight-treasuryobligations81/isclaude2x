@@ -11,14 +11,12 @@
 		"format": "prettier --write .",
 		"deploy": "wrangler deploy"
 	},
-	"dependencies": {
-		"dayjs": "^1.11.20"
-	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20260313.1",
 		"@eslint/js": "^9.39.4",
 		"@types/react": "^19.2.14",
 		"@types/react-dom": "^19.2.3",
+		"dayjs": "^1.11.20",
 		"eslint": "^9.39.4",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-prettier": "^5.5.5",

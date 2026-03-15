@@ -2,6 +2,9 @@
 	"name": "isclaude2x",
 	"main": "worker/index.ts",
 	"compatibility_date": "2025-01-01",
+	"assets": {
+		"directory": "./static",
+	},
 	"routes": [
 		{
 			"pattern": "isclaude2x.com",

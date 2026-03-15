@@ -31,21 +31,21 @@ Returns full status as JSON, including time remaining for the current window.
 
 ```json
 {
-  "is2x": true,
-  "promoActive": true,
-  "isPeak": false,
-  "isWeekend": true,
-  "peakHours": "8 AM – 2 PM ET (weekdays only)",
-  "promoPeriod": "March 13–27, 2026",
-  "currentTimeET": "9:50 AM",
-  "currentTimeUser": "7:20 PM",
-  "currentDay": "Sunday",
-  "userTimezone": "Asia/Kolkata",
-  "timestamp": "2026-03-15T13:50:46.402Z",
-  "2xWindowExpiresInSeconds": 79753,
-  "2xWindowExpiresIn": "22h 09m 13s",
-  "standardWindowExpiresInSeconds": null,
-  "standardWindowExpiresIn": null
+	"is2x": true,
+	"promoActive": true,
+	"isPeak": false,
+	"isWeekend": true,
+	"peakHours": "8 AM – 2 PM ET (weekdays only)",
+	"promoPeriod": "March 13–27, 2026",
+	"currentTimeET": "9:50 AM",
+	"currentTimeUser": "7:20 PM",
+	"currentDay": "Sunday",
+	"userTimezone": "Asia/Kolkata",
+	"timestamp": "2026-03-15T13:50:46.402Z",
+	"2xWindowExpiresInSeconds": 79753,
+	"2xWindowExpiresIn": "22h 09m 13s",
+	"standardWindowExpiresInSeconds": null,
+	"standardWindowExpiresIn": null
 }
 ```
 
