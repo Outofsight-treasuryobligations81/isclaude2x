@@ -3,9 +3,9 @@
 // No server round-trip needed — just Date.now() + Intl.
 
 // ── Promotion constants ─────────────────────────────────
-// March 13–27, 2026 in EDT (UTC-4)
+// March 13–27, 2026
 const PROMO_START = 1773374400000 // 2026-03-13T04:00:00Z (midnight EDT)
-const PROMO_END = 1774681140000 // 2026-03-28T06:59:00Z (March 27 11:59 PM PDT)
+const PROMO_END = 1774681200000 // 2026-03-28T07:00:00Z (midnight PDT = end of March 27)
 const PEAK_START_UTC = 12 // 8 AM EDT
 const PEAK_END_UTC = 18 // 2 PM EDT
 
