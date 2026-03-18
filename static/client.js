@@ -200,8 +200,11 @@ function faviconSVG(is2x) {
 }
 
 /** Update the favicon link element with current status */
+let _lastFaviconIs2x = null
 function updateFavicon(is2x) {
-	var link = document.getElementById("favicon")
+	if (is2x === _lastFaviconIs2x) return
+	_lastFaviconIs2x = is2x
+	const link = document.getElementById("favicon")
 	if (link) link.href = "data:image/svg+xml," + encodeURIComponent(faviconSVG(is2x))
 }
 
@@ -213,6 +216,7 @@ if (typeof globalThis !== "undefined") {
 		formatTime, getETDayName, getDayName, getETProgress,
 		getDayProgress, getPeakFractions, formatHourInTz,
 		formatTzName, isWeekendET, findNextWeekdayPeakStart,
+		faviconSVG,
 		PROMO_START, PROMO_END, PEAK_START_UTC, PEAK_END_UTC,
 	})
 }
